@@ -12,6 +12,8 @@ html,
   min-height: 100vh
 }
 .btn {
+  color: #fff;
+  background: #f7580e;
   font-size: 0.9rem;
   font-weight: 500;
   padding: 0.66rem;
@@ -19,16 +21,14 @@ html,
   box-shadow: 0 .1rem .1rem rgba(0,0,0,.05)!important
 }
 .App-link {
-  color: #61dafb;
+  color: #ff3c00;
 }
 
-.btn-light {
-  border-color: #dedede
-}
 
-.btn-light:hover {
-  border-color: #dedede;
-  background-color: #f3f3f3
+
+.btn-hover {
+
+  background-color: #f3f3f300
 }
 
 .shadow {

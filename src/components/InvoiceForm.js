@@ -45,73 +45,136 @@ class InvoiceForm extends React.Component {
   }
   componentDidMount(prevProps) {
     this.handleCalculateTotal()
-  }
-  handleRowDel(items) {
-    var index = this.state.items.indexOf(items);
-    this.state.items.splice(index, 1);
-    this.setState(this.state.items);
   };
-  handleAddEvent(evt) {
-    var id = (+ new Date() + Math.floor(Math.random() * 999999)).toString(36);
-    var items = {
-      id: id,
-      name: '',
-      price: '1.00',
-      description: '',
-      quantity: 1
-    }
-    this.state.items.push(items);
-    this.setState(this.state.items);
-  }
-  handleCalculateTotal() {
-    var items = this.state.items;
-    var subTotal = 0;
+handleRowDel = (item) => {
+  const items = this.state.items.filter(
+    (currentItem) => currentItem.id !== item.id
+  );
 
-    items.map(function(items) {
-      subTotal = parseFloat(subTotal + (parseFloat(items.price).toFixed(2) * parseInt(items.quantity))).toFixed(2)
-    });
+  this.setState(
+    { items },
+    this.handleCalculateTotal
+  );
+};
 
-    this.setState({
-      subTotal: parseFloat(subTotal).toFixed(2)
-    }, () => {
-      this.setState({
-        taxAmmount: parseFloat(parseFloat(subTotal) * (this.state.taxRate / 100)).toFixed(2)
-      }, () => {
-        this.setState({
-          discountAmmount: parseFloat(parseFloat(subTotal) * (this.state.discountRate / 100)).toFixed(2)
-        }, () => {
-          this.setState({
-            total: ((subTotal - this.state.discountAmmount) + parseFloat(this.state.taxAmmount))
-          });
-        });
-      });
-    });
+handleAddEvent = () => {
+  const id =
+    (+new Date() + Math.floor(Math.random() * 999999)).toString(36);
 
+  const newItem = {
+    id: id,
+    name: '',
+    price: '1.00',
+    description: '',
+    quantity: 1
   };
-  onItemizedItemEdit(evt) {
-    var item = {
-      id: evt.target.id,
-      name: evt.target.name,
-      value: evt.target.value
-    };
-    var items = this.state.items.slice();
-    var newItems = items.map(function(items) {
-      for (var key in items) {
-        if (key == item.name && items.id == item.id) {
-          items[key] = item.value;
-        }
+
+  const items = [...this.state.items, newItem];
+
+  this.setState(
+    { items },
+    this.handleCalculateTotal
+  );
+};
+
+handleCalculateTotal = () => {
+  const items = this.state.items;
+
+  const subTotal = items.reduce((total, item) => {
+    const price = parseFloat(item.price) || 0;
+    const quantity = parseFloat(item.quantity) || 0;
+
+    return total + price * quantity;
+  }, 0);
+
+  const taxRate = parseFloat(this.state.taxRate) || 0;
+  const discountRate = parseFloat(this.state.discountRate) || 0;
+
+  const taxAmmount = subTotal * (taxRate / 100);
+  const discountAmmount = subTotal * (discountRate / 100);
+
+  const total = subTotal - discountAmmount + taxAmmount;
+
+  this.setState({
+    subTotal: subTotal.toFixed(2),
+    taxAmmount: taxAmmount.toFixed(2),
+    discountAmmount: discountAmmount.toFixed(2),
+    total: total.toFixed(2)
+  });
+};
+
+onItemizedItemEdit = (evt) => {
+  const { id, name, value } = evt.target;
+
+  this.setState((prevState) => {
+    const items = prevState.items.map((item) => {
+      if (String(item.id) === String(id)) {
+        return {
+          ...item,
+          [name]: value
+        };
       }
-      return items;
+
+      return item;
     });
-    this.setState({items: newItems});
-    this.handleCalculateTotal();
-  };
-  editField = (event) => {
-    this.setState({
-      [event.target.name]: event.target.value
-    });
-    this.handleCalculateTotal();
-  };
+
+    const subTotal = items.reduce((total, item) => {
+      const price = parseFloat(item.price) || 0;
+      const quantity = parseFloat(item.quantity) || 0;
+
+      return total + price * quantity;
+    }, 0);
+
+    const taxRate = parseFloat(prevState.taxRate) || 0;
+    const discountRate = parseFloat(prevState.discountRate) || 0;
+
+    const taxAmmount = subTotal * (taxRate / 100);
+    const discountAmmount = subTotal * (discountRate / 100);
+    const total = subTotal - discountAmmount + taxAmmount;
+
+    return {
+      items,
+      subTotal: subTotal.toFixed(2),
+      taxAmmount: taxAmmount.toFixed(2),
+      discountAmmount: discountAmmount.toFixed(2),
+      total: total.toFixed(2)
+    };
+  });
+};
+ editField = (event) => {
+  const { name, value } = event.target;
+
+  this.setState((prevState) => {
+    const newState = {
+      ...prevState,
+      [name]: value
+    };
+
+    const items = newState.items;
+
+    const subTotal = items.reduce((total, item) => {
+      const price = parseFloat(item.price) || 0;
+      const quantity = parseFloat(item.quantity) || 0;
+
+      return total + price * quantity;
+    }, 0);
+
+    const taxRate = parseFloat(newState.taxRate) || 0;
+    const discountRate = parseFloat(newState.discountRate) || 0;
+
+    const taxAmmount = subTotal * (taxRate / 100);
+    const discountAmmount = subTotal * (discountRate / 100);
+    const total = subTotal - discountAmmount + taxAmmount;
+
+    return {
+      [name]: value,
+      subTotal: subTotal.toFixed(2),
+      taxAmmount: taxAmmount.toFixed(2),
+      discountAmmount: discountAmmount.toFixed(2),
+      total: total.toFixed(2)
+    };
+  });
+};
   onCurrencyChange = (selectedOption) => {
     this.setState(selectedOption);
   };
